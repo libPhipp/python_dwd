@@ -2,7 +2,7 @@
 from pathlib import Path, PurePosixPath
 from typing import Union
 
-from python_dwd.constants.access_credentials import SUB_FOLDER_STATIONDATA, DWD_SERVER, DWD_PATH, FTP_EXPRESSION
+from python_dwd.constants.access_credentials import SUB_FOLDER_STATIONDATA, DWD_SERVER, DWD_CLIMATE_OBSERVATIONS_PATH
 
 
 def create_local_file_name(remote_file_path: Union[Path, str],
@@ -29,7 +29,7 @@ def create_remote_file_name(file: str) -> str:
 
     """
     file_server = PurePosixPath(DWD_SERVER,
-                                DWD_PATH,
+                                DWD_CLIMATE_OBSERVATIONS_PATH,
                                 file)
 
-    return f"{FTP_EXPRESSION}{file_server}"
+    return f"{file_server}"

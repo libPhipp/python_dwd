@@ -11,9 +11,16 @@ setup(
     description='A module for accessing data of the german weather service',
     license='MIT',
     long_description=long_description,
-    author='Benjamin Gutzmann',
-    author_email='gutzemann@gmail.com',
-    packages=['python_dwd'],  # , 'python_dwd.additionals'
-    install_requires=['pandas', 'pathlib',
-                      'zipfile', 'scipy', 'numpy']
+    author='Benjamin Gutzmann|gutzemann@gmail.com, '
+           'Daniel Lassahn|daniel.lassahn@meteointelligence.de',
+    packages=['python_dwd'],
+    install_requires=['pandas',
+                      'tables',
+                      'pathlib',
+                      'zipfile',
+                      'scipy',
+                      'numpy',
+                      'h5py',
+                      'requests',
+                      'lxml']
 )
