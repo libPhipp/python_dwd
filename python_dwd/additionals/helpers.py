@@ -10,7 +10,7 @@ from multiprocessing import Pool
 import ftplib
 
 from python_dwd.constants.column_name_mapping import GERMAN_TO_ENGLISH_COLUMNS_MAPPING, METADATA_DTYPE_MAPPING
-from python_dwd.constants.access_credentials import DWD_SERVER, DWD_CLIMATE_OBSERVATIONS_PATH, MAIN_FOLDER, \
+from python_dwd.constants.access_credentials import DWD_SERVER, DWD_CLIMATE_OBSERVATIONS, MAIN_FOLDER, \
     SUB_FOLDER_METADATA
 from python_dwd.constants.metadata import METADATA_COLUMNS, METADATA_MATCHSTRINGS, FILELIST_NAME, FTP_METADATA_NAME, \
     ARCHIVE_FORMAT, DATA_FORMAT, METADATA_FIXED_COLUMN_WIDTH, STATIONDATA_SEP, NA_STRING, TRIES_TO_DOWNLOAD_FILE, \
@@ -40,7 +40,7 @@ def create_metaindex(parameter: Parameter,
         not yet complete as file existence is not checked.
 
     """
-    server_path = PurePosixPath(DWD_CLIMATE_OBSERVATIONS_PATH,
+    server_path = PurePosixPath(DWD_CLIMATE_OBSERVATIONS,
                                 time_resolution.value,
                                 parameter.value,
                                 period_type.value)
@@ -57,7 +57,7 @@ def create_metaindex(parameter: Parameter,
     metafile_server = [file for file in files_server
                        if find_all_matchstrings_in_string(file.lower(), METADATA_MATCHSTRINGS)].pop(0)
 
-    metafile_server = create_remote_file_name(metafile_server.lstrip(DWD_CLIMATE_OBSERVATIONS_PATH))
+    metafile_server = create_remote_file_name(metafile_server.lstrip(DWD_CLIMATE_OBSERVATIONS))
 
     try:
         with urllib.request.urlopen(metafile_server) as request:
@@ -97,7 +97,7 @@ def metaindex_for_1minute_data(parameter: Parameter,
     assert time_resolution == TimeResolution.MINUTE_1, \
         "Wrong TimeResolution, only 1 minute is valid "
 
-    metadata_path = PurePosixPath(DWD_CLIMATE_OBSERVATIONS_PATH,
+    metadata_path = PurePosixPath(DWD_CLIMATE_OBSERVATIONS,
                                   time_resolution.value,
                                   parameter.value,
                                   FTP_METADATA_NAME)
@@ -107,7 +107,7 @@ def metaindex_for_1minute_data(parameter: Parameter,
 
         metadata_filepaths = ftp.list_files(remote_path=str(metadata_path), also_subfolders=False)
 
-    metadata_filepaths = [create_remote_file_name(file.lstrip(DWD_CLIMATE_OBSERVATIONS_PATH)) for file in metadata_filepaths]
+    metadata_filepaths = [create_remote_file_name(file.lstrip(DWD_CLIMATE_OBSERVATIONS)) for file in metadata_filepaths]
 
     statids = [re.findall(STATID_REGEX, file).pop(0) for file in metadata_filepaths]
 
@@ -221,7 +221,7 @@ def create_fileindex(parameter: Parameter,
                                f"{time_resolution.value}_"
                                f"{period_type.value}{DATA_FORMAT}")
 
-    server_path = PurePosixPath(DWD_CLIMATE_OBSERVATIONS_PATH,
+    server_path = PurePosixPath(DWD_CLIMATE_OBSERVATIONS,
                                 time_resolution.value,
                                 parameter.value,
                                 period_type.value)
@@ -241,7 +241,7 @@ def create_fileindex(parameter: Parameter,
                                 dtype='str')
 
     files_server.loc[:, DWDColumns.FILENAME.value] = files_server.loc[:, DWDColumns.FILENAME.value].apply(
-        lambda filename: filename.lstrip(DWD_CLIMATE_OBSERVATIONS_PATH + '/'))
+        lambda filename: filename.lstrip(DWD_CLIMATE_OBSERVATIONS + '/'))
 
     files_server = files_server[files_server.FILENAME.str.contains(
         ARCHIVE_FORMAT)]
