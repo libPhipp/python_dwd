@@ -10,25 +10,26 @@ import pandas as pd
 from python_dwd.constants.metadata import STATIONDATA_MATCHSTRINGS
 from python_dwd.download.download_services import create_remote_file_name
 from python_dwd.additionals.functions import find_all_matchstrings_in_string
-from python_dwd.enumerations.column_names_enumeration import DWDColumns
 
 
 def download_dwd_data(remote_files: pd.DataFrame,
                       parallel_download: bool = False) -> List[Tuple[str, BytesIO]]:
     """ wrapper for _download_dwd_data to provide a multiprocessing feature"""
 
-    remote_files: List[str] = remote_files[DWDColumns.FILENAME.value].to_list()
+    remote_files: List[str] = [name for name in remote_files["FILENAME"]]
 
     if parallel_download:
         return list(
             zip(
-                remote_files,
+                [remote_file.split("/")[-1] for remote_file in remote_files],
                 Pool().map(_download_dwd_data, remote_files)
             )
         )
     else:
-        return [(remote_file, _download_dwd_data(remote_file))
-                for remote_file in remote_files]
+        return [
+            (remote_file.split("/")[-1], _download_dwd_data(remote_file))
+            for remote_file in remote_files
+        ]
 
 
 def _download_dwd_data(remote_file: Union[str, Path]) -> BytesIO:
@@ -51,10 +52,10 @@ def _download_dwd_data(remote_file: Union[str, Path]) -> BytesIO:
     try:
         with urllib.request.urlopen(file_server) as url_request:
             zip_file = BytesIO(url_request.read())
-    except urllib.error.URLError:
-        raise urllib.error.URLError(f"Error: the stationdata {file_server} couldn't be reached.")
-    except urllib.error.HTTPERROR:
-        pass
+    except urllib.error.URLError as e:
+        raise e(f"Error: the stationdata {file_server} couldn't be reached.")
+    except:
+        print(file_server)
 
     try:
         with zipfile.ZipFile(zip_file) as zip_file_opened:
@@ -63,6 +64,7 @@ def _download_dwd_data(remote_file: Union[str, Path]) -> BytesIO:
                             if find_all_matchstrings_in_string(file_in_zip, STATIONDATA_MATCHSTRINGS)].pop(0)
             file = BytesIO(zip_file_opened.open(produkt_file).read())
     except zipfile.BadZipFile as e:
-        raise zipfile.BadZipFile(f"The zipfile seems to be corrupted.\n {str(e)}")
+        raise zipfile.BadZipFile(f"Error: The zipfile seems to be corrupted.\n"
+                                 f"{str(e)}")
 
     return file
